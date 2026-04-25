@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Agentic — Local, privacy-safe multi-agent QA assistant for requirement analysis and test data generation from Confluence PDFs.">
+    <title>Agentic — Multi-Agent QA Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background gradient orbs -->
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header" id="app-header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">🤖</span>
+                    <h1>Agentic</h1>
+                </div>
+                <span class="badge">Local AI</span>
+            </div>
+            <div class="header-right">
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Checking...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="upload-section" id="upload-section">
+            <div class="upload-card glass-card">
+                <div class="upload-zone" id="upload-zone">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="18" x2="12" y2="12"/>
+                            <polyline points="9 15 12 12 15 15"/>
+                        </svg>
+                    </div>
+                    <h2>Upload Confluence PDF</h2>
+                    <p>Drag & drop your PDF here, or <span class="browse-link">browse</span></p>
+                    <p class="upload-hint">Supports Confluence-exported PDF documents</p>
+                    <input type="file" id="file-input" accept=".pdf" hidden>
+                </div>
+
+                <!-- File preview (shown after selection) -->
+                <div class="file-preview hidden" id="file-preview">
+                    <div class="file-info">
+                        <span class="file-icon">📄</span>
+                        <div>
+                            <p class="file-name" id="file-name"></p>
+                            <p class="file-size" id="file-size"></p>
+                        </div>
+                    </div>
+                    <button class="btn btn-remove" id="btn-remove" title="Remove file">✕</button>
+                </div>
+
+                <button class="btn btn-primary hidden" id="btn-analyze">
+                    <span class="btn-text">Analyze Requirements</span>
+                    <span class="btn-icon">→</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section class="progress-section hidden" id="progress-section">
+            <div class="progress-card glass-card">
+                <h2>Analyzing your document...</h2>
+                <div class="progress-steps">
+                    <div class="step" id="step-extract">
+                        <div class="step-indicator">
+                            <div class="step-spinner"></div>
+                            <span class="step-check">✓</span>
+                        </div>
+                        <div class="step-info">
+                            <span class="step-title">Extracting Text</span>
+                            <span class="step-desc">Parsing PDF structure and content</span>
+                        </div>
+                    </div>
+                    <div class="step" id="step-clarify">
+                        <div class="step-indicator">
+                            <div class="step-spinner"></div>
+                            <span class="step-check">✓</span>
+                        </div>
+                        <div class="step-info">
+                            <span class="step-title">Agent 1: Clarifying Requirements</span>
+                            <span class="step-desc">Identifying gaps, ambiguities, and risks</span>
+                        </div>
+                    </div>
+                    <div class="step" id="step-testgen">
+                        <div class="step-indicator">
+                            <div class="step-spinner"></div>
+                            <span class="step-check">✓</span>
+                        </div>
+                        <div class="step-info">
+                            <span class="step-title">Agent 2: Generating Test Data</span>
+                            <span class="step-desc">Creating comprehensive test cases</span>
+                        </div>
+                    </div>
+                    <div class="step" id="step-complete">
+                        <div class="step-indicator">
+                            <div class="step-spinner"></div>
+                            <span class="step-check">✓</span>
+                        </div>
+                        <div class="step-info">
+                            <span class="step-title">Complete</span>
+                            <span class="step-desc">Assembling final results</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-timer">
+                    <span id="elapsed-time">0s</span> elapsed
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section hidden" id="results-section">
+            <!-- Summary Bar -->
+            <div class="summary-bar glass-card" id="summary-bar">
+                <div class="summary-stat">
+                    <span class="stat-value" id="stat-risk">—</span>
+                    <span class="stat-label">Risk Level</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-value" id="stat-missing">—</span>
+                    <span class="stat-label">Missing Reqs</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-value" id="stat-ambiguities">—</span>
+                    <span class="stat-label">Ambiguities</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-value" id="stat-tests">—</span>
+                    <span class="stat-label">Test Cases</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="stat-value" id="stat-time">—</span>
+                    <span class="stat-label">Time</span>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="result-tabs" id="result-tabs">
+                <button class="tab active" data-tab="clarification">🧠 Clarification</button>
+                <button class="tab" data-tab="testdata">🧪 Test Data</button>
+                <button class="tab" data-tab="extracted">📄 Extracted Text</button>
+                <button class="tab" data-tab="json">{ } Raw JSON</button>
+            </div>
+
+            <!-- Tab Content: Clarification -->
+            <div class="tab-content active" id="tab-clarification">
+                <div class="result-card glass-card">
+                    <h3>📝 Summary</h3>
+                    <p id="result-summary" class="result-text"></p>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>⚠️ Missing Requirements</h3>
+                    <ul id="result-missing" class="result-list"></ul>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>🔍 Ambiguities</h3>
+                    <ul id="result-ambiguities" class="result-list"></ul>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>❓ Clarification Questions</h3>
+                    <ul id="result-questions" class="result-list question-list"></ul>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>💡 Assumptions</h3>
+                    <ul id="result-assumptions" class="result-list"></ul>
+                </div>
+            </div>
+
+            <!-- Tab Content: Test Data -->
+            <div class="tab-content" id="tab-testdata">
+                <div class="result-card glass-card">
+                    <h3>✅ Valid Cases</h3>
+                    <div id="result-valid" class="test-cases"></div>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>❌ Invalid Cases</h3>
+                    <div id="result-invalid" class="test-cases"></div>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>🔄 Edge Cases</h3>
+                    <div id="result-edge" class="test-cases"></div>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>📏 Boundary Values</h3>
+                    <div id="result-boundary" class="test-cases"></div>
+                </div>
+
+                <div class="result-card glass-card">
+                    <h3>🛡️ Security Cases</h3>
+                    <div id="result-security" class="test-cases"></div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Extracted Text -->
+            <div class="tab-content" id="tab-extracted">
+                <div class="result-card glass-card">
+                    <h3>📄 Extracted & Cleaned Text</h3>
+                    <pre id="result-extracted-text" class="extracted-text"></pre>
+                </div>
+            </div>
+
+            <!-- Tab Content: Raw JSON -->
+            <div class="tab-content" id="tab-json">
+                <div class="result-card glass-card">
+                    <div class="json-header">
+                        <h3>{ } Full JSON Output</h3>
+                        <button class="btn btn-secondary" id="btn-download">⬇ Download JSON</button>
+                    </div>
+                    <pre id="result-json" class="json-output"></pre>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-new">← Analyze Another PDF</button>
+            </div>
+        </section>
+
+        <!-- Error Toast -->
+        <div class="toast hidden" id="toast">
+            <span class="toast-icon">⚠️</span>
+            <span class="toast-message" id="toast-message"></span>
+            <button class="toast-close" id="toast-close">✕</button>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

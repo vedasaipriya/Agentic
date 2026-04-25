@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 package-lock.json
+venv/
+__pycache__/
+*.pyc
 
 # Build output
 dist/
@@ -24,7 +27,12 @@ Desktop.ini
 # Logs
 *.log
 npm-debug.log*
+logs/
 
 # Temporary files
 *.tmp
 *.swp
+
+# App directories
+output/
+uploads/
